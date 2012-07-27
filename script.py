@@ -19,8 +19,22 @@ def map_attr_row(attr_row):
   for i, s in enumerate(attr_row):
     attr_idxs[s].append(i)
   return attr_idxs
+
+def ma_to_txt(M, fname, delimiter="\t", format="%.6f"):
+  fp = open(fname, "w")
+  for row in M:
+    s = []
+    for i in range(np.size(M,1)):
+      if row.mask[i]:
+        s.append("")
+      else:
+        s.append(format%row.data[i])
+    fp.write(delimiter.join(s))
+    fp.write('\n')
+  fp.close()
+
   
-def main(attr_fname=None, npy_fname=None):
+def main(attr_fname=None, npy_fname=None, to_txt=True):
   print "Loading %s..." % attr_fname
   attr_row = open(attr_fname).read().strip().split(',')
   print "Loading %s..." % npy_fname
@@ -36,6 +50,12 @@ def main(attr_fname=None, npy_fname=None):
     fname = npy_fname+".%s.npy" % name
     print "Saving %s..." % fname
     np.ma.dump(Q, fname)
+  if to_txt:
+    print "Output matrices to text.\n====="
+    for name, Q in D.items():
+      fname = npy_fname+".%s.npy.tab" % name
+      print "Saving %s..." % fname
+      ma_to_txt(Q, fname)
 
 if __name__ == "__main__":
   main(**dict([s.split('=') for s in sys.argv[1:]]))
