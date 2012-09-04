@@ -56,7 +56,7 @@ def main(fname_tab=None, fname_samples=None, attr=None):
   # Save one copy of the matrix, one per attribute value
   fps = {}
   for v in unique_attr_values:
-    outname = fname_tab+".%s=%s.tab" % (attr, v)
+    outname = fname_tab+".%s=%s.tab" % (clean(attr), clean(v))
     fps[v] = open(outname, "w")
     print "Opened %s for writing..." % outname
 
