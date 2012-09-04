@@ -7,6 +7,7 @@ EXAMPLE USE:
   python $HOME/split_sample_matrix_by_attribute/script_geo_downloader.py fname_tab=$HOME/gse15745_sept2012/GSE15745_GPL6104.normed.tab fname_samples=$HOME/gse15745_sept2012/GSE15745_GPL6104.samples.tab attr=characteristics_ch1:tissue
 """
 import re
+import sys
 
 RX_CLEAN = re.compile('[^a-zA-Z0-9-_]')
 
@@ -14,14 +15,16 @@ class Samples(object):
   def __init__(self, fp):
     self.headers = []
     self.attrs = {}
+    self.gsm_ids = []
     for line in fp:
       if len(line) >= 2 and line[:2] == "##":
         self.headers.append(line)
       elif len(line) >= 1 and line[0] == "#":
         name, c, row = line[1:].partition('\t')
-        self.attrs[name] = row.rstrip('\n').split('\t')
+        self.gsm_ids = row.rstrip('\n').split('\t')
       else:
-        continue
+        name, c, row = line.partition('\t')
+        self.attrs[name] = row.rstrip('\n').split('\t')
         
 def clean(s):
   return RX_CLEAN.sub('_', s.upper())
@@ -31,9 +34,8 @@ def main(fname_tab=None, fname_samples=None, attr=None):
 
   S = Samples(open(fname_samples))
   assert attr in S.attrs
-  assert "accession" in S.attrs
   unique_attr_values = set(S.attrs[attr])
-  n = S.attrs[attr]
+  n = len(S.attrs[attr])
   print "%d unique_attr_values (of %d total) for attribute %s: %s" % \
       (len(unique_attr_values), n, attr, ", ".join(unique_attr_values))
   value_cols = {}
@@ -45,8 +47,11 @@ def main(fname_tab=None, fname_samples=None, attr=None):
     value_cols[S.attrs[attr][i]].append(i)
   print "Attribute distributions:"
   for name, idxs in value_cols.items():
-    print "%s: (%d) %s" % (name, len(idxs), ",".join([int(x) for x in sorted(idxs)]))
-  i_to_attr = dict([(i, v) for v, i in value_cols.items()])
+    print "%s: (%d) %s" % (name, len(idxs), ",".join([str(x) for x in sorted(idxs)]))
+  i_to_attr = {}
+  for k, v in value_cols.items():
+    for i in v:
+      i_to_attr[i] = k
 
   # Save one copy of the matrix, one per attribute value
   fps = {}
@@ -69,5 +74,11 @@ def main(fname_tab=None, fname_samples=None, attr=None):
   # Close all files
   for name, fp in fps.items():
     print "Closing file for %s..." % name
+
+  # TODO: save sample information in separate files
     
     
+if __name__ == "__main__":
+  print sys.argv[1:]
+  main(**dict([s.split('=') for s in sys.argv[1:]]))
+  
