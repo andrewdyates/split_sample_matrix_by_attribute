@@ -6,6 +6,7 @@ time python $HOME/split_sample_matrix_by_attribute/script.py attr_fname=$HOME/gs
 """
 import numpy as np
 import sys
+import cPickle as pickle
 
 
 def split_M(attr_row, M):
@@ -47,9 +48,10 @@ def main(attr_fname=None, npy_fname=None, to_txt=True):
   # Dump matrices to disk
   print "Writing matrices to disk..."
   for name, Q in D.items():
-    fname = npy_fname+".%s.npy" % name
+    fname = npy_fname+".%s.pkl" % name
     print "Saving %s..." % fname
-    np.ma.dump(Q, fname)
+    pickle.dump(Q, open(fname, 'w'), protocol=2)
+    # np.ma.dump(Q, fname)
   if to_txt:
     print "Output matrices to text.\n====="
     for name, Q in D.items():
